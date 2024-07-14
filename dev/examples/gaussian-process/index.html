@@ -1,5 +1,460 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Gaussian Process State-Space Model (GP-SSM) · AdvancedPS</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">AdvancedPS</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../api/">API</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../example/">Examples</a></li><li class="is-active"><a class="tocitem" href>Gaussian Process State-Space Model (GP-SSM)</a></li><li><a class="tocitem" href="../gaussian-ssm/">Particle Gibbs for Gaussian state-space model</a></li><li><a class="tocitem" href="../levy-ssm/">Levy-SSM latent state inference</a></li><li><a class="tocitem" href="../particle-gibbs/">Particle Gibbs for non-linear models</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Gaussian Process State-Space Model (GP-SSM)</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Gaussian Process State-Space Model (GP-SSM)</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/TuringLang/AdvancedPS.jl/blob/master/examples/gaussian-process/script.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Gaussian-Process-State-Space-Model-(GP-SSM)"><a class="docs-heading-anchor" href="#Gaussian-Process-State-Space-Model-(GP-SSM)">Gaussian Process State-Space Model (GP-SSM)</a><a id="Gaussian-Process-State-Space-Model-(GP-SSM)-1"></a><a class="docs-heading-anchor-permalink" href="#Gaussian-Process-State-Space-Model-(GP-SSM)" title="Permalink"></a></h1><pre><code class="language-julia hljs">using LinearAlgebra
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Gaussian Process State-Space Model (GP-SSM) · AdvancedPS</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body>
+<!-- NAVBAR START -->
+<style>
+    html {
+        scroll-padding-top: calc(55px + 1rem);
+    }
+
+    /* Documenter css tweaks */
+    .docs-sidebar {
+        margin-top: 3.75rem;
+    }
+
+    #documenter {
+        margin-top: 3.75rem;
+    }
+
+    .docs-version-selector {
+        margin-bottom: 60px !important;
+    }
+
+    @media screen and (max-width: 1056px) {
+        .docs-version-selector {
+            margin-bottom: 60px !important;
+        }
+
+        .docs-sidebar {
+            margin-top: 0 !important;
+        }
+    }
+    /* Documenter css tweaks ends here */
+
+    :root {
+        --heading-color: white;
+        --item-color: rgb(165, 165, 165);
+        --primary-bg: #073c44;
+        --hover-color: #8faad2;
+    }
+
+    .ext-navigation {
+        position: fixed;
+        height: 3.75rem;
+        top: 0;
+        width: 100%;
+        background-color: var(--primary-bg);
+        z-index: 1000;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        padding: 0 1.0625rem;
+        transition: transform 0.3s;
+    }
+
+    .ext-navbar-logo {
+        margin-left: 0.625rem;
+    }
+
+    .ext-nav-links {
+        display: flex;
+        align-items: center;
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        flex-grow: 1;
+    }
+
+    .ext-nav-links li {
+        margin-left: 1rem !important;
+    }
+
+    .ext-nav-link {
+        color: white !important;
+        text-decoration: none;
+        font-size: 1.0625rem !important;
+        transition: color 0.2s ease;
+        cursor: pointer;
+    }
+
+    .ext-nav-link:hover,
+    .ext-navbar-item-single a:hover {
+        color: var(--hover-color) !important;
+    }
+
+    .ext-navbar-item-single a {
+        color: #fff !important;
+    }
+
+    .ext-menu-toggle {
+        display: none;
+        font-size: 1.5rem;
+        color: white;
+        cursor: pointer;
+    }
+
+    .ext-dropdown {
+        display: none;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        grid-template-rows: auto auto auto;
+        padding: 1.875rem;
+        position: absolute;
+        width: 100%;
+        left: 0;
+        background-color: #083c44;
+        line-height: 1.875rem;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        transform: translateY(-0.625rem);
+    }
+
+    #library-handler::after {
+        content: "▼";
+        font-size: 0.6875rem;
+        margin-left: 0.3125rem;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    #library-handler.open::after {
+        content: "▲";
+    }
+
+    .ext-dropdown.show {
+        display: grid;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .ext-dropdown ul {
+        height: auto;
+        width: 12.5rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .ext-dropdown ul li {
+        text-align: left;
+    }
+
+    .navbar-sub-item {
+        list-style: none;
+    }
+
+    .ext-dropdown ul a li {
+        color: var(--item-color);
+        width: 15.625rem;
+        border-radius: 3px;
+        padding: 0.125rem 0.625rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .ext-dropdown ul a li:hover {
+        background-color: rgba(107, 107, 107, 0.5);
+    }
+
+    .ext-dropdown-item-heading {
+        color: var(--heading-color);
+        text-align: center;
+    }
+
+    /* Responsive styling */
+    @media (max-width: 966px) {
+        .ext-dropdown {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .ext-nav-links {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            background-color: var(--primary-bg);
+            position: absolute;
+            top: 3.75rem;
+            left: 0;
+            padding: 0.625rem 0;
+            height: auto;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgb(141, 141, 141) grey;
+        }
+
+        .ext-nav-links.show {
+            display: flex;
+        }
+
+        .ext-nav-links li {
+            margin: 0.625rem 0;
+            text-align: center;
+        }
+
+        .ext-menu-toggle {
+            display: block;
+            margin-left: auto;
+        }
+
+        .ext-navigation.hide {
+            transform: translateY(-3.75rem);
+        }
+
+        .ext-dropdown {
+            place-content: center;
+            text-align: center;
+            grid-template-columns: 1fr;
+            line-height: 1.25rem;
+            padding: 0.625rem;
+        }
+
+        .ext-dropdown ul {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 0.3125rem;
+        }
+
+        .ext-dropdown ul li {
+            text-align: center;
+        }
+
+        .ext-dropdown ul a li {
+            width: 100%;
+        }
+
+        .ext-dropdown ul a li:hover {
+            background-color: var(--primary-bg);
+            color: #fff;
+        }
+
+        /* Modified scroll bar */
+        .ext-nav-links::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .ext-nav-links::-webkit-scrollbar-track {
+            box-shadow: inset 0 0 5px grey;
+        }
+
+        .ext-nav-links::-webkit-scrollbar-thumb {
+            background: rgb(141, 141, 141);
+            border-radius: 3px;
+        }
+
+        .ext-nav-links::-webkit-scrollbar-thumb:hover {
+            background: #9b9b9b;
+        }
+    }
+</style>
+<nav class="ext-navigation">
+    <a href="https://turinglang.org/">
+        <img src="https://turinglang.org/assets/images/turing-logo.svg" alt="Turing Logo" class="ext-navbar-logo" height="24px" width="40px">
+    </a>
+    <a style="color: white !important; font-size: 21.25px !important; margin-left: 10px;" href="https://turinglang.org/">Turing.jl</a>
+    <ul class="ext-nav-links">
+        <li>
+            <a class="ext-nav-link" href="https://turinglang.org/docs/tutorials/docs-00-getting-started/">Get Started</a>
+        </li>
+        <li>
+            <a class="ext-nav-link" href="https://turinglang.org/docs/tutorials/00-introduction/">Tutorials</a>
+        </li>
+        <li>
+            <p class="ext-nav-link" id="library-handler">Libraries</p>
+            <div class="ext-dropdown" id="ext-dropdown-items">
+                <ul>
+                    <li class="ext-dropdown-item-heading">Modellinglanguages</li>
+                    <a href="https://turinglang.org/DynamicPPL.jl/">
+                        <li>DynamicPPL</li>
+                    </a>
+                    <a href="https://turinglang.org/JuliaBUGS.jl/">
+                        <li>JuliaBUGS</li>
+                    </a>
+                    <a href="https://turinglang.org/TuringGLM.jl/">
+                        <li>TurineGLM</li>
+                    </a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">MCMC</li>
+                    <a href="https://turinglang.org/AdvancedHMC.jl/">
+                        <li>AdvancedHMC</li>
+                    </a>
+                    <a href="https://turinglang.org/AbstractMCMC.jl/">
+                        <li>AbstractMCMC</li>
+                    </a>
+                    <a href="https://github.com/theogf/ThermodynamicIntegration.jl">
+                        <li>ThermodynamicIntegration</li>
+                    </a>
+                    <a href="https://turinglang.org/AdvancedPS.jl/">
+                        <li>AdvancedPS</li>
+                    </a>
+                    <a href="https://turinglang.org/EllipticalSliceSampling.jl/">
+                        <li>EllipticalSliceSampling</li>
+                    </a>
+                    <a href="https://turinglang.org/NestedSamplers.jl/">
+                        <li>NestedSamplers</li>
+                    </a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">Diagnostics</li>
+                    <a href="https://turinglang.org/MCMCChains.jl/">
+                        <li>MCMCChains</li>
+                    </a>
+                    <a href="https://turinglang.org/MCMCDiagnosticTools.jl/">
+                        <li>MCMCDiagnosticTools</li>
+                    </a>
+                    <a href="https://turinglang.org/ParetoSmooth.jl/">
+                        <li>ParetoSmooth</li>
+                    </a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">Gaussion Processes</li>
+                    <a href="https://juliagaussianprocesses.github.io/AbstractGPs.jl/">
+                        <li>AbstractGPs</li>
+                    </a>
+                    <a href="https://juliagaussianprocesses.github.io/KernelFunctions.jl/">
+                        <li>KernelFunctions</li>
+                    </a>
+                    <a href="https://juliagaussianprocesses.github.io/ApproximateGPs.jl/">
+                        <li>ApproximateGPs</li>
+                    </a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading ext-navbar-item-single">
+                        <a href="https://turinglang.org/Bijectors.jl/">Bijectors</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading ext-navbar-item-single">
+                        <a href="https://turinglang.org/TuringCallbacks.jl/">TuringCallbacks</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading ext-navbar-item-single">
+                        <a href="https://turinglang.org/TuringBenchmarking.jl/">TuringBenchmarking</a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+        <li>
+            <a class="ext-nav-link" href="https://turinglang.org/news/">News</a>
+        </li>
+        <li>
+            <a class="ext-nav-link" href="https://turinglang.org/team/">Team</a>
+        </li>
+    </ul>
+    <a href="https://x.com/TuringLang" style="margin-left: 15px; padding-top: 2px">
+        <svg fill="#ffffff" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="32px" height="32px" viewBox="-209.92 -209.92 931.84 931.84" xml:space="preserve" stroke="#ffffff">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+                <g id="7935ec95c421cee6d86eb22ecd12f847">
+                    <path style="display: inline"
+                        d="M459.186,151.787c0.203,4.501,0.305,9.023,0.305,13.565 c0,138.542-105.461,298.285-298.274,298.285c-59.209,0-114.322-17.357-160.716-47.104c8.212,0.973,16.546,1.47,25.012,1.47 c49.121,0,94.318-16.759,130.209-44.884c-45.887-0.841-84.596-31.154-97.938-72.804c6.408,1.227,12.968,1.886,19.73,1.886 c9.55,0,18.816-1.287,27.617-3.68c-47.955-9.633-84.1-52.001-84.1-102.795c0-0.446,0-0.882,0.011-1.318 c14.133,7.847,30.294,12.562,47.488,13.109c-28.134-18.796-46.637-50.885-46.637-87.262c0-19.212,5.16-37.218,14.193-52.7 c51.707,63.426,128.941,105.156,216.072,109.536c-1.784-7.675-2.718-15.674-2.718-23.896c0-57.891,46.941-104.832,104.832-104.832 c30.173,0,57.404,12.734,76.525,33.102c23.887-4.694,46.313-13.423,66.569-25.438c-7.827,24.485-24.434,45.025-46.089,58.002 c21.209-2.535,41.426-8.171,60.222-16.505C497.448,118.542,479.666,137.004,459.186,151.787z">
+                    </path>
+                </g>
+            </g>
+        </svg>
+    </a>
+    <a href="https://github.com/TuringLang/Turing.jl">
+        <svg width="32px" height="32px" viewBox="-8.2 -8.2 36.40 36.40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+                <title>github [#142]</title>
+                <desc>Created with Sketch.</desc>
+                <defs></defs>
+                <g id="Page-1" stroke-width="0.0002" fill="none" fill-rule="evenodd">
+                    <g id="Dribbble-Light-Preview" transform="translate(-140.000000, -7559.000000)" fill="#ffffff">
+                        <g id="icons" transform="translate(56.000000, 160.000000)">
+                            <path
+                                d="M94,7399 C99.523,7399 104,7403.59 104,7409.253 C104,7413.782 101.138,7417.624 97.167,7418.981 C96.66,7419.082 96.48,7418.762 96.48,7418.489 C96.48,7418.151 96.492,7417.047 96.492,7415.675 C96.492,7414.719 96.172,7414.095 95.813,7413.777 C98.04,7413.523 100.38,7412.656 100.38,7408.718 C100.38,7407.598 99.992,7406.684 99.35,7405.966 C99.454,7405.707 99.797,7404.664 99.252,7403.252 C99.252,7403.252 98.414,7402.977 96.505,7404.303 C95.706,7404.076 94.85,7403.962 94,7403.958 C93.15,7403.962 92.295,7404.076 91.497,7404.303 C89.586,7402.977 88.746,7403.252 88.746,7403.252 C88.203,7404.664 88.546,7405.707 88.649,7405.966 C88.01,7406.684 87.619,7407.598 87.619,7408.718 C87.619,7412.646 89.954,7413.526 92.175,7413.785 C91.889,7414.041 91.63,7414.493 91.54,7415.156 C90.97,7415.418 89.522,7415.871 88.63,7414.304 C88.63,7414.304 88.101,7413.319 87.097,7413.247 C87.097,7413.247 86.122,7413.234 87.029,7413.87 C87.029,7413.87 87.684,7414.185 88.139,7415.37 C88.139,7415.37 88.726,7417.2 91.508,7416.58 C91.513,7417.437 91.522,7418.245 91.522,7418.489 C91.522,7418.76 91.338,7419.077 90.839,7418.982 C86.865,7417.627 84,7413.783 84,7409.253 C84,7403.59 88.478,7399 94,7399"
+                                id="github-[#142]">
+                            </path>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </svg>
+    </a>
+    <span class="ext-menu-toggle">&#9776;</span>
+</nav>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const menuToggle = document.querySelector(".ext-menu-toggle");
+        const navLinks = document.querySelector(".ext-nav-links");
+        const nav = document.querySelector(".ext-navigation");
+        const navigationHandler = document.getElementById("library-handler");
+        const navigationItemsContainer =
+            document.getElementById("ext-dropdown-items");
+        let lastScrollY = window.scrollY;
+
+        function setAppropriateHeight() {
+            if (window.innerWidth <= 768) {
+                const viewportHeight = window.innerHeight;
+                const navHeight = nav.offsetHeight;
+                navLinks.style.maxHeight = `${viewportHeight - navHeight}px`;
+                navLinks.style.overflowY = "auto";
+            } else {
+                navLinks.style.maxHeight = "";
+                navLinks.style.overflowY = "";
+            }
+        }
+
+        // Toggle main menu for mobile
+        menuToggle.addEventListener("click", () => {
+            navLinks.classList.toggle("show");
+            if (navLinks.classList.contains("show")) {
+                setAppropriateHeight();
+                // Ensure the dropdown is hidden when menu is first opened
+                navigationItemsContainer.style.display = "none";
+                navigationItemsContainer.classList.remove("show");
+            }
+        });
+
+        // Close menus if clicked outside
+        document.addEventListener("click", (event) => {
+            if (
+                !navLinks.contains(event.target) &&
+                !menuToggle.contains(event.target)
+            ) {
+                navLinks.classList.remove("show");
+                navigationItemsContainer.classList.remove("show");
+                navigationHandler.classList.remove("open");
+            }
+        });
+
+        // Hide navigation bar on scroll down in mobile view
+        window.addEventListener("scroll", () => {
+            if (window.innerWidth <= 768) {
+                nav.classList.toggle("hide", window.scrollY > lastScrollY);
+                lastScrollY = window.scrollY;
+            }
+        });
+
+        // Library API script
+        navigationHandler.addEventListener("click", (event) => {
+            event.preventDefault(); // Prevent default action of the link
+            if (navigationItemsContainer.classList.contains("show")) {
+                navigationItemsContainer.classList.remove("show");
+                navigationHandler.classList.remove("open");
+                setTimeout(() => {
+                    navigationItemsContainer.style.display = "none";
+                }, 500); // Match the timeout to the CSS transition duration
+            } else {
+                navigationItemsContainer.style.display = "grid";
+                navigationHandler.classList.add("open");
+                setTimeout(() => {
+                    navigationItemsContainer.classList.add("show");
+                }, 10); // Delay to ensure the display change takes effect before adding class
+            }
+            setAppropriateHeight(); // Recalculate height when dropdown changes
+        });
+
+        // Handle window resize
+        window.addEventListener("resize", setAppropriateHeight);
+
+        // Initial setup
+        setAppropriateHeight();
+    });
+</script>
+<!-- NAVBAR END -->
+<div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">AdvancedPS</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../api/">API</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../example/">Examples</a></li><li class="is-active"><a class="tocitem" href>Gaussian Process State-Space Model (GP-SSM)</a></li><li><a class="tocitem" href="../gaussian-ssm/">Particle Gibbs for Gaussian state-space model</a></li><li><a class="tocitem" href="../levy-ssm/">Levy-SSM latent state inference</a></li><li><a class="tocitem" href="../particle-gibbs/">Particle Gibbs for non-linear models</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Gaussian Process State-Space Model (GP-SSM)</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Gaussian Process State-Space Model (GP-SSM)</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/TuringLang/AdvancedPS.jl/blob/master/examples/gaussian-process/script.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Gaussian-Process-State-Space-Model-(GP-SSM)"><a class="docs-heading-anchor" href="#Gaussian-Process-State-Space-Model-(GP-SSM)">Gaussian Process State-Space Model (GP-SSM)</a><a id="Gaussian-Process-State-Space-Model-(GP-SSM)-1"></a><a class="docs-heading-anchor-permalink" href="#Gaussian-Process-State-Space-Model-(GP-SSM)" title="Permalink"></a></h1><pre><code class="language-julia hljs">using LinearAlgebra
 using Random
 using AdvancedPS
 using AbstractGPs
@@ -25132,3 +25587,4 @@ plot!(mean_trajectory; color=:dodgerblue, label=&quot;Mean trajectory&quot;, opa
 <path clip-path="url(#clip120)" d="M489.074 130.84 Q483.981 130.84 480.972 134.636 Q477.986 138.432 477.986 144.983 Q477.986 151.511 480.972 155.307 Q483.981 159.104 489.074 159.104 Q494.166 159.104 497.129 155.307 Q500.115 151.511 500.115 144.983 Q500.115 138.432 497.129 134.636 Q494.166 130.84 489.074 130.84 M489.074 127.044 Q496.342 127.044 500.694 131.928 Q505.046 136.789 505.046 144.983 Q505.046 153.155 500.694 158.039 Q496.342 162.9 489.074 162.9 Q481.782 162.9 477.407 158.039 Q473.055 153.178 473.055 144.983 Q473.055 136.789 477.407 131.928 Q481.782 127.044 489.074 127.044 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M527.198 140.284 Q526.481 139.868 525.624 139.682 Q524.791 139.474 523.772 139.474 Q520.161 139.474 518.217 141.835 Q516.296 144.173 516.296 148.571 L516.296 162.229 L512.013 162.229 L512.013 136.303 L516.296 136.303 L516.296 140.331 Q517.638 137.969 519.791 136.835 Q521.944 135.678 525.022 135.678 Q525.462 135.678 525.995 135.747 Q526.527 135.794 527.175 135.909 L527.198 140.284 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M531.666 136.303 L535.925 136.303 L535.925 162.229 L531.666 162.229 L531.666 136.303 M531.666 126.21 L535.925 126.21 L535.925 131.604 L531.666 131.604 L531.666 126.21 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M561.897 148.965 Q561.897 144.335 559.976 141.789 Q558.078 139.243 554.629 139.243 Q551.203 139.243 549.282 141.789 Q547.383 144.335 547.383 148.965 Q547.383 153.571 549.282 156.118 Q551.203 158.664 554.629 158.664 Q558.078 158.664 559.976 156.118 Q561.897 153.571 561.897 148.965 M566.156 159.011 Q566.156 165.631 563.217 168.849 Q560.277 172.09 554.212 172.09 Q551.967 172.09 549.976 171.742 Q547.985 171.418 546.11 170.724 L546.11 166.58 Q547.985 167.599 549.814 168.085 Q551.643 168.571 553.541 168.571 Q557.731 168.571 559.814 166.372 Q561.897 164.196 561.897 159.775 L561.897 157.668 Q560.578 159.96 558.518 161.094 Q556.457 162.229 553.587 162.229 Q548.819 162.229 545.902 158.594 Q542.985 154.96 542.985 148.965 Q542.985 142.946 545.902 139.312 Q548.819 135.678 553.587 135.678 Q556.457 135.678 558.518 136.812 Q560.578 137.946 561.897 140.238 L561.897 136.303 L566.156 136.303 L566.156 159.011 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M574.93 136.303 L579.189 136.303 L579.189 162.229 L574.93 162.229 L574.93 136.303 M574.93 126.21 L579.189 126.21 L579.189 131.604 L574.93 131.604 L574.93 126.21 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M609.652 146.581 L609.652 162.229 L605.392 162.229 L605.392 146.719 Q605.392 143.039 603.957 141.21 Q602.522 139.382 599.652 139.382 Q596.203 139.382 594.212 141.581 Q592.221 143.78 592.221 147.576 L592.221 162.229 L587.939 162.229 L587.939 136.303 L592.221 136.303 L592.221 140.331 Q593.749 137.993 595.809 136.835 Q597.892 135.678 600.601 135.678 Q605.068 135.678 607.36 138.456 Q609.652 141.21 609.652 146.581 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M629.929 149.196 Q624.767 149.196 622.777 150.377 Q620.786 151.557 620.786 154.405 Q620.786 156.673 622.267 158.016 Q623.772 159.335 626.341 159.335 Q629.883 159.335 632.013 156.835 Q634.165 154.312 634.165 150.145 L634.165 149.196 L629.929 149.196 M638.425 147.437 L638.425 162.229 L634.165 162.229 L634.165 158.293 Q632.707 160.655 630.531 161.789 Q628.355 162.9 625.207 162.9 Q621.226 162.9 618.865 160.678 Q616.527 158.432 616.527 154.682 Q616.527 150.307 619.443 148.085 Q622.383 145.863 628.193 145.863 L634.165 145.863 L634.165 145.446 Q634.165 142.507 632.221 140.909 Q630.3 139.289 626.804 139.289 Q624.582 139.289 622.476 139.821 Q620.369 140.354 618.425 141.419 L618.425 137.483 Q620.763 136.581 622.962 136.141 Q625.161 135.678 627.244 135.678 Q632.869 135.678 635.647 138.594 Q638.425 141.511 638.425 147.437 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M647.198 126.21 L651.457 126.21 L651.457 162.229 L647.198 162.229 L647.198 126.21 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M670.832 127.669 L700.068 127.669 L700.068 131.604 L687.799 131.604 L687.799 162.229 L683.1 162.229 L683.1 131.604 L670.832 131.604 L670.832 127.669 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M712.452 140.284 Q711.734 139.868 710.878 139.682 Q710.045 139.474 709.026 139.474 Q705.415 139.474 703.471 141.835 Q701.549 144.173 701.549 148.571 L701.549 162.229 L697.267 162.229 L697.267 136.303 L701.549 136.303 L701.549 140.331 Q702.892 137.969 705.045 136.835 Q707.197 135.678 710.276 135.678 Q710.716 135.678 711.248 135.747 Q711.781 135.794 712.429 135.909 L712.452 140.284 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M728.702 149.196 Q723.54 149.196 721.549 150.377 Q719.558 151.557 719.558 154.405 Q719.558 156.673 721.04 158.016 Q722.545 159.335 725.114 159.335 Q728.656 159.335 730.785 156.835 Q732.938 154.312 732.938 150.145 L732.938 149.196 L728.702 149.196 M737.197 147.437 L737.197 162.229 L732.938 162.229 L732.938 158.293 Q731.48 160.655 729.304 161.789 Q727.128 162.9 723.98 162.9 Q719.998 162.9 717.637 160.678 Q715.299 158.432 715.299 154.682 Q715.299 150.307 718.216 148.085 Q721.156 145.863 726.966 145.863 L732.938 145.863 L732.938 145.446 Q732.938 142.507 730.994 140.909 Q729.072 139.289 725.577 139.289 Q723.355 139.289 721.248 139.821 Q719.142 140.354 717.197 141.419 L717.197 137.483 Q719.535 136.581 721.734 136.141 Q723.933 135.678 726.017 135.678 Q731.642 135.678 734.419 138.594 Q737.197 141.511 737.197 147.437 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M745.97 136.303 L750.23 136.303 L750.23 162.692 Q750.23 167.645 748.331 169.867 Q746.456 172.09 742.267 172.09 L740.646 172.09 L740.646 168.479 L741.781 168.479 Q744.211 168.479 745.091 167.344 Q745.97 166.233 745.97 162.692 L745.97 136.303 M745.97 126.21 L750.23 126.21 L750.23 131.604 L745.97 131.604 L745.97 126.21 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M781.317 148.201 L781.317 150.284 L761.734 150.284 Q762.012 154.682 764.373 156.997 Q766.757 159.289 770.993 159.289 Q773.447 159.289 775.739 158.687 Q778.053 158.085 780.322 156.881 L780.322 160.909 Q778.03 161.881 775.623 162.391 Q773.216 162.9 770.739 162.9 Q764.535 162.9 760.901 159.289 Q757.29 155.678 757.29 149.52 Q757.29 143.155 760.716 139.428 Q764.165 135.678 769.998 135.678 Q775.229 135.678 778.262 139.057 Q781.317 142.414 781.317 148.201 M777.058 146.951 Q777.012 143.456 775.091 141.372 Q773.192 139.289 770.044 139.289 Q766.479 139.289 764.327 141.303 Q762.197 143.317 761.873 146.974 L777.058 146.951 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M806.965 137.298 L806.965 141.28 Q805.16 140.284 803.331 139.798 Q801.526 139.289 799.674 139.289 Q795.53 139.289 793.239 141.928 Q790.947 144.544 790.947 149.289 Q790.947 154.034 793.239 156.673 Q795.53 159.289 799.674 159.289 Q801.526 159.289 803.331 158.803 Q805.16 158.293 806.965 157.298 L806.965 161.233 Q805.183 162.067 803.262 162.483 Q801.364 162.9 799.211 162.9 Q793.354 162.9 789.905 159.219 Q786.456 155.539 786.456 149.289 Q786.456 142.946 789.928 139.312 Q793.424 135.678 799.489 135.678 Q801.456 135.678 803.331 136.095 Q805.206 136.488 806.965 137.298 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M818.586 128.942 L818.586 136.303 L827.359 136.303 L827.359 139.613 L818.586 139.613 L818.586 153.687 Q818.586 156.858 819.442 157.761 Q820.322 158.664 822.984 158.664 L827.359 158.664 L827.359 162.229 L822.984 162.229 Q818.053 162.229 816.178 160.4 Q814.303 158.548 814.303 153.687 L814.303 139.613 L811.178 139.613 L811.178 136.303 L814.303 136.303 L814.303 128.942 L818.586 128.942 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M843.007 139.289 Q839.581 139.289 837.59 141.974 Q835.599 144.636 835.599 149.289 Q835.599 153.942 837.567 156.627 Q839.558 159.289 843.007 159.289 Q846.41 159.289 848.4 156.604 Q850.391 153.918 850.391 149.289 Q850.391 144.682 848.4 141.997 Q846.41 139.289 843.007 139.289 M843.007 135.678 Q848.562 135.678 851.734 139.289 Q854.905 142.9 854.905 149.289 Q854.905 155.655 851.734 159.289 Q848.562 162.9 843.007 162.9 Q837.428 162.9 834.257 159.289 Q831.109 155.655 831.109 149.289 Q831.109 142.9 834.257 139.289 Q837.428 135.678 843.007 135.678 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M876.988 140.284 Q876.271 139.868 875.414 139.682 Q874.581 139.474 873.562 139.474 Q869.951 139.474 868.007 141.835 Q866.085 144.173 866.085 148.571 L866.085 162.229 L861.803 162.229 L861.803 136.303 L866.085 136.303 L866.085 140.331 Q867.428 137.969 869.581 136.835 Q871.734 135.678 874.812 135.678 Q875.252 135.678 875.784 135.747 Q876.317 135.794 876.965 135.909 L876.988 140.284 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M892.243 164.636 Q890.437 169.266 888.724 170.678 Q887.011 172.09 884.141 172.09 L880.738 172.09 L880.738 168.525 L883.238 168.525 Q884.997 168.525 885.97 167.692 Q886.942 166.858 888.122 163.756 L888.886 161.812 L878.4 136.303 L882.914 136.303 L891.016 156.581 L899.118 136.303 L903.632 136.303 L892.243 164.636 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><polyline clip-path="url(#clip120)" style="stroke:#1e90ff; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:0.9; fill:none" points="306.499,196.789 449.261,196.789 "/>
 <path clip-path="url(#clip120)" d="M473.055 179.509 L480.023 179.509 L488.842 203.027 L497.708 179.509 L504.675 179.509 L504.675 214.069 L500.115 214.069 L500.115 183.722 L491.203 207.425 L486.504 207.425 L477.592 183.722 L477.592 214.069 L473.055 214.069 L473.055 179.509 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M535.948 200.041 L535.948 202.124 L516.365 202.124 Q516.643 206.522 519.004 208.837 Q521.388 211.129 525.624 211.129 Q528.078 211.129 530.37 210.527 Q532.684 209.925 534.953 208.721 L534.953 212.749 Q532.661 213.721 530.254 214.231 Q527.847 214.74 525.37 214.74 Q519.166 214.74 515.532 211.129 Q511.921 207.518 511.921 201.36 Q511.921 194.995 515.347 191.268 Q518.796 187.518 524.629 187.518 Q529.86 187.518 532.893 190.897 Q535.948 194.254 535.948 200.041 M531.689 198.791 Q531.643 195.296 529.721 193.212 Q527.823 191.129 524.675 191.129 Q521.11 191.129 518.958 193.143 Q516.828 195.157 516.504 198.814 L531.689 198.791 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M554.721 201.036 Q549.559 201.036 547.569 202.217 Q545.578 203.397 545.578 206.245 Q545.578 208.513 547.059 209.856 Q548.564 211.175 551.133 211.175 Q554.675 211.175 556.805 208.675 Q558.957 206.152 558.957 201.985 L558.957 201.036 L554.721 201.036 M563.217 199.277 L563.217 214.069 L558.957 214.069 L558.957 210.133 Q557.499 212.495 555.323 213.629 Q553.147 214.74 549.999 214.74 Q546.018 214.74 543.657 212.518 Q541.319 210.272 541.319 206.522 Q541.319 202.147 544.235 199.925 Q547.175 197.703 552.985 197.703 L558.957 197.703 L558.957 197.286 Q558.957 194.347 557.013 192.749 Q555.092 191.129 551.596 191.129 Q549.374 191.129 547.268 191.661 Q545.161 192.194 543.217 193.259 L543.217 189.323 Q545.555 188.421 547.754 187.981 Q549.953 187.518 552.036 187.518 Q557.661 187.518 560.439 190.434 Q563.217 193.351 563.217 199.277 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M593.541 198.421 L593.541 214.069 L589.281 214.069 L589.281 198.559 Q589.281 194.879 587.846 193.05 Q586.411 191.222 583.541 191.222 Q580.092 191.222 578.101 193.421 Q576.11 195.62 576.11 199.416 L576.11 214.069 L571.828 214.069 L571.828 188.143 L576.11 188.143 L576.11 192.171 Q577.638 189.833 579.698 188.675 Q581.781 187.518 584.49 187.518 Q588.957 187.518 591.249 190.296 Q593.541 193.05 593.541 198.421 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M621.318 180.782 L621.318 188.143 L630.091 188.143 L630.091 191.453 L621.318 191.453 L621.318 205.527 Q621.318 208.698 622.175 209.601 Q623.054 210.504 625.716 210.504 L630.091 210.504 L630.091 214.069 L625.716 214.069 Q620.786 214.069 618.911 212.24 Q617.036 210.388 617.036 205.527 L617.036 191.453 L613.911 191.453 L613.911 188.143 L617.036 188.143 L617.036 180.782 L621.318 180.782 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M650.716 192.124 Q649.999 191.708 649.142 191.522 Q648.309 191.314 647.29 191.314 Q643.679 191.314 641.735 193.675 Q639.813 196.013 639.813 200.411 L639.813 214.069 L635.531 214.069 L635.531 188.143 L639.813 188.143 L639.813 192.171 Q641.156 189.809 643.309 188.675 Q645.462 187.518 648.54 187.518 Q648.98 187.518 649.513 187.587 Q650.045 187.634 650.693 187.749 L650.716 192.124 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M666.966 201.036 Q661.804 201.036 659.813 202.217 Q657.823 203.397 657.823 206.245 Q657.823 208.513 659.304 209.856 Q660.809 211.175 663.378 211.175 Q666.92 211.175 669.049 208.675 Q671.202 206.152 671.202 201.985 L671.202 201.036 L666.966 201.036 M675.461 199.277 L675.461 214.069 L671.202 214.069 L671.202 210.133 Q669.744 212.495 667.568 213.629 Q665.392 214.74 662.244 214.74 Q658.262 214.74 655.901 212.518 Q653.563 210.272 653.563 206.522 Q653.563 202.147 656.48 199.925 Q659.42 197.703 665.23 197.703 L671.202 197.703 L671.202 197.286 Q671.202 194.347 669.258 192.749 Q667.336 191.129 663.841 191.129 Q661.619 191.129 659.512 191.661 Q657.406 192.194 655.462 193.259 L655.462 189.323 Q657.8 188.421 659.999 187.981 Q662.198 187.518 664.281 187.518 Q669.906 187.518 672.684 190.434 Q675.461 193.351 675.461 199.277 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M684.235 188.143 L688.494 188.143 L688.494 214.532 Q688.494 219.485 686.596 221.707 Q684.721 223.93 680.531 223.93 L678.911 223.93 L678.911 220.319 L680.045 220.319 Q682.475 220.319 683.355 219.184 Q684.235 218.073 684.235 214.532 L684.235 188.143 M684.235 178.05 L688.494 178.05 L688.494 183.444 L684.235 183.444 L684.235 178.05 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M719.582 200.041 L719.582 202.124 L699.998 202.124 Q700.276 206.522 702.637 208.837 Q705.021 211.129 709.258 211.129 Q711.711 211.129 714.003 210.527 Q716.318 209.925 718.586 208.721 L718.586 212.749 Q716.295 213.721 713.887 214.231 Q711.48 214.74 709.003 214.74 Q702.799 214.74 699.165 211.129 Q695.554 207.518 695.554 201.36 Q695.554 194.995 698.98 191.268 Q702.429 187.518 708.262 187.518 Q713.494 187.518 716.526 190.897 Q719.582 194.254 719.582 200.041 M715.322 198.791 Q715.276 195.296 713.355 193.212 Q711.457 191.129 708.309 191.129 Q704.744 191.129 702.591 193.143 Q700.461 195.157 700.137 198.814 L715.322 198.791 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M745.23 189.138 L745.23 193.12 Q743.424 192.124 741.595 191.638 Q739.79 191.129 737.938 191.129 Q733.794 191.129 731.503 193.768 Q729.211 196.384 729.211 201.129 Q729.211 205.874 731.503 208.513 Q733.794 211.129 737.938 211.129 Q739.79 211.129 741.595 210.643 Q743.424 210.133 745.23 209.138 L745.23 213.073 Q743.447 213.907 741.526 214.323 Q739.628 214.74 737.475 214.74 Q731.619 214.74 728.17 211.059 Q724.72 207.379 724.72 201.129 Q724.72 194.786 728.193 191.152 Q731.688 187.518 737.753 187.518 Q739.72 187.518 741.595 187.935 Q743.47 188.328 745.23 189.138 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M756.85 180.782 L756.85 188.143 L765.623 188.143 L765.623 191.453 L756.85 191.453 L756.85 205.527 Q756.85 208.698 757.706 209.601 Q758.586 210.504 761.248 210.504 L765.623 210.504 L765.623 214.069 L761.248 214.069 Q756.318 214.069 754.443 212.24 Q752.568 210.388 752.568 205.527 L752.568 191.453 L749.443 191.453 L749.443 188.143 L752.568 188.143 L752.568 180.782 L756.85 180.782 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M781.271 191.129 Q777.845 191.129 775.854 193.814 Q773.864 196.476 773.864 201.129 Q773.864 205.782 775.831 208.467 Q777.822 211.129 781.271 211.129 Q784.674 211.129 786.665 208.444 Q788.655 205.758 788.655 201.129 Q788.655 196.522 786.665 193.837 Q784.674 191.129 781.271 191.129 M781.271 187.518 Q786.827 187.518 789.998 191.129 Q793.169 194.74 793.169 201.129 Q793.169 207.495 789.998 211.129 Q786.827 214.74 781.271 214.74 Q775.692 214.74 772.521 211.129 Q769.373 207.495 769.373 201.129 Q769.373 194.74 772.521 191.129 Q775.692 187.518 781.271 187.518 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M815.252 192.124 Q814.535 191.708 813.678 191.522 Q812.845 191.314 811.826 191.314 Q808.215 191.314 806.271 193.675 Q804.35 196.013 804.35 200.411 L804.35 214.069 L800.067 214.069 L800.067 188.143 L804.35 188.143 L804.35 192.171 Q805.692 189.809 807.845 188.675 Q809.998 187.518 813.076 187.518 Q813.516 187.518 814.049 187.587 Q814.581 187.634 815.229 187.749 L815.252 192.124 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip120)" d="M830.507 216.476 Q828.701 221.106 826.988 222.518 Q825.275 223.93 822.405 223.93 L819.002 223.93 L819.002 220.365 L821.502 220.365 Q823.262 220.365 824.234 219.532 Q825.206 218.698 826.387 215.596 L827.15 213.652 L816.664 188.143 L821.178 188.143 L829.28 208.421 L837.382 188.143 L841.896 188.143 L830.507 216.476 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /></svg>
 <hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../example/">« Examples</a><a class="docs-footer-nextpage" href="../gaussian-ssm/">Particle Gibbs for Gaussian state-space model »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Sunday 14 July 2024 14:19">Sunday 14 July 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+

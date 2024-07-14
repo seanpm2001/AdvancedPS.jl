@@ -1,5 +1,460 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Levy-SSM latent state inference · AdvancedPS</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">AdvancedPS</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../api/">API</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../example/">Examples</a></li><li><a class="tocitem" href="../gaussian-process/">Gaussian Process State-Space Model (GP-SSM)</a></li><li><a class="tocitem" href="../gaussian-ssm/">Particle Gibbs for Gaussian state-space model</a></li><li class="is-active"><a class="tocitem" href>Levy-SSM latent state inference</a></li><li><a class="tocitem" href="../particle-gibbs/">Particle Gibbs for non-linear models</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Levy-SSM latent state inference</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Levy-SSM latent state inference</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/TuringLang/AdvancedPS.jl/blob/master/examples/levy-ssm/script.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Levy-SSM-latent-state-inference"><a class="docs-heading-anchor" href="#Levy-SSM-latent-state-inference">Levy-SSM latent state inference</a><a id="Levy-SSM-latent-state-inference-1"></a><a class="docs-heading-anchor-permalink" href="#Levy-SSM-latent-state-inference" title="Permalink"></a></h1><pre><code class="language-julia hljs">using AdvancedPS: SSMProblems
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Levy-SSM latent state inference · AdvancedPS</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body>
+<!-- NAVBAR START -->
+<style>
+    html {
+        scroll-padding-top: calc(55px + 1rem);
+    }
+
+    /* Documenter css tweaks */
+    .docs-sidebar {
+        margin-top: 3.75rem;
+    }
+
+    #documenter {
+        margin-top: 3.75rem;
+    }
+
+    .docs-version-selector {
+        margin-bottom: 60px !important;
+    }
+
+    @media screen and (max-width: 1056px) {
+        .docs-version-selector {
+            margin-bottom: 60px !important;
+        }
+
+        .docs-sidebar {
+            margin-top: 0 !important;
+        }
+    }
+    /* Documenter css tweaks ends here */
+
+    :root {
+        --heading-color: white;
+        --item-color: rgb(165, 165, 165);
+        --primary-bg: #073c44;
+        --hover-color: #8faad2;
+    }
+
+    .ext-navigation {
+        position: fixed;
+        height: 3.75rem;
+        top: 0;
+        width: 100%;
+        background-color: var(--primary-bg);
+        z-index: 1000;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        padding: 0 1.0625rem;
+        transition: transform 0.3s;
+    }
+
+    .ext-navbar-logo {
+        margin-left: 0.625rem;
+    }
+
+    .ext-nav-links {
+        display: flex;
+        align-items: center;
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        flex-grow: 1;
+    }
+
+    .ext-nav-links li {
+        margin-left: 1rem !important;
+    }
+
+    .ext-nav-link {
+        color: white !important;
+        text-decoration: none;
+        font-size: 1.0625rem !important;
+        transition: color 0.2s ease;
+        cursor: pointer;
+    }
+
+    .ext-nav-link:hover,
+    .ext-navbar-item-single a:hover {
+        color: var(--hover-color) !important;
+    }
+
+    .ext-navbar-item-single a {
+        color: #fff !important;
+    }
+
+    .ext-menu-toggle {
+        display: none;
+        font-size: 1.5rem;
+        color: white;
+        cursor: pointer;
+    }
+
+    .ext-dropdown {
+        display: none;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        grid-template-rows: auto auto auto;
+        padding: 1.875rem;
+        position: absolute;
+        width: 100%;
+        left: 0;
+        background-color: #083c44;
+        line-height: 1.875rem;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        transform: translateY(-0.625rem);
+    }
+
+    #library-handler::after {
+        content: "▼";
+        font-size: 0.6875rem;
+        margin-left: 0.3125rem;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    #library-handler.open::after {
+        content: "▲";
+    }
+
+    .ext-dropdown.show {
+        display: grid;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .ext-dropdown ul {
+        height: auto;
+        width: 12.5rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .ext-dropdown ul li {
+        text-align: left;
+    }
+
+    .navbar-sub-item {
+        list-style: none;
+    }
+
+    .ext-dropdown ul a li {
+        color: var(--item-color);
+        width: 15.625rem;
+        border-radius: 3px;
+        padding: 0.125rem 0.625rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .ext-dropdown ul a li:hover {
+        background-color: rgba(107, 107, 107, 0.5);
+    }
+
+    .ext-dropdown-item-heading {
+        color: var(--heading-color);
+        text-align: center;
+    }
+
+    /* Responsive styling */
+    @media (max-width: 966px) {
+        .ext-dropdown {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .ext-nav-links {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            background-color: var(--primary-bg);
+            position: absolute;
+            top: 3.75rem;
+            left: 0;
+            padding: 0.625rem 0;
+            height: auto;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgb(141, 141, 141) grey;
+        }
+
+        .ext-nav-links.show {
+            display: flex;
+        }
+
+        .ext-nav-links li {
+            margin: 0.625rem 0;
+            text-align: center;
+        }
+
+        .ext-menu-toggle {
+            display: block;
+            margin-left: auto;
+        }
+
+        .ext-navigation.hide {
+            transform: translateY(-3.75rem);
+        }
+
+        .ext-dropdown {
+            place-content: center;
+            text-align: center;
+            grid-template-columns: 1fr;
+            line-height: 1.25rem;
+            padding: 0.625rem;
+        }
+
+        .ext-dropdown ul {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 0.3125rem;
+        }
+
+        .ext-dropdown ul li {
+            text-align: center;
+        }
+
+        .ext-dropdown ul a li {
+            width: 100%;
+        }
+
+        .ext-dropdown ul a li:hover {
+            background-color: var(--primary-bg);
+            color: #fff;
+        }
+
+        /* Modified scroll bar */
+        .ext-nav-links::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .ext-nav-links::-webkit-scrollbar-track {
+            box-shadow: inset 0 0 5px grey;
+        }
+
+        .ext-nav-links::-webkit-scrollbar-thumb {
+            background: rgb(141, 141, 141);
+            border-radius: 3px;
+        }
+
+        .ext-nav-links::-webkit-scrollbar-thumb:hover {
+            background: #9b9b9b;
+        }
+    }
+</style>
+<nav class="ext-navigation">
+    <a href="https://turinglang.org/">
+        <img src="https://turinglang.org/assets/images/turing-logo.svg" alt="Turing Logo" class="ext-navbar-logo" height="24px" width="40px">
+    </a>
+    <a style="color: white !important; font-size: 21.25px !important; margin-left: 10px;" href="https://turinglang.org/">Turing.jl</a>
+    <ul class="ext-nav-links">
+        <li>
+            <a class="ext-nav-link" href="https://turinglang.org/docs/tutorials/docs-00-getting-started/">Get Started</a>
+        </li>
+        <li>
+            <a class="ext-nav-link" href="https://turinglang.org/docs/tutorials/00-introduction/">Tutorials</a>
+        </li>
+        <li>
+            <p class="ext-nav-link" id="library-handler">Libraries</p>
+            <div class="ext-dropdown" id="ext-dropdown-items">
+                <ul>
+                    <li class="ext-dropdown-item-heading">Modellinglanguages</li>
+                    <a href="https://turinglang.org/DynamicPPL.jl/">
+                        <li>DynamicPPL</li>
+                    </a>
+                    <a href="https://turinglang.org/JuliaBUGS.jl/">
+                        <li>JuliaBUGS</li>
+                    </a>
+                    <a href="https://turinglang.org/TuringGLM.jl/">
+                        <li>TurineGLM</li>
+                    </a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">MCMC</li>
+                    <a href="https://turinglang.org/AdvancedHMC.jl/">
+                        <li>AdvancedHMC</li>
+                    </a>
+                    <a href="https://turinglang.org/AbstractMCMC.jl/">
+                        <li>AbstractMCMC</li>
+                    </a>
+                    <a href="https://github.com/theogf/ThermodynamicIntegration.jl">
+                        <li>ThermodynamicIntegration</li>
+                    </a>
+                    <a href="https://turinglang.org/AdvancedPS.jl/">
+                        <li>AdvancedPS</li>
+                    </a>
+                    <a href="https://turinglang.org/EllipticalSliceSampling.jl/">
+                        <li>EllipticalSliceSampling</li>
+                    </a>
+                    <a href="https://turinglang.org/NestedSamplers.jl/">
+                        <li>NestedSamplers</li>
+                    </a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">Diagnostics</li>
+                    <a href="https://turinglang.org/MCMCChains.jl/">
+                        <li>MCMCChains</li>
+                    </a>
+                    <a href="https://turinglang.org/MCMCDiagnosticTools.jl/">
+                        <li>MCMCDiagnosticTools</li>
+                    </a>
+                    <a href="https://turinglang.org/ParetoSmooth.jl/">
+                        <li>ParetoSmooth</li>
+                    </a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading">Gaussion Processes</li>
+                    <a href="https://juliagaussianprocesses.github.io/AbstractGPs.jl/">
+                        <li>AbstractGPs</li>
+                    </a>
+                    <a href="https://juliagaussianprocesses.github.io/KernelFunctions.jl/">
+                        <li>KernelFunctions</li>
+                    </a>
+                    <a href="https://juliagaussianprocesses.github.io/ApproximateGPs.jl/">
+                        <li>ApproximateGPs</li>
+                    </a>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading ext-navbar-item-single">
+                        <a href="https://turinglang.org/Bijectors.jl/">Bijectors</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading ext-navbar-item-single">
+                        <a href="https://turinglang.org/TuringCallbacks.jl/">TuringCallbacks</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="ext-dropdown-item-heading ext-navbar-item-single">
+                        <a href="https://turinglang.org/TuringBenchmarking.jl/">TuringBenchmarking</a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+        <li>
+            <a class="ext-nav-link" href="https://turinglang.org/news/">News</a>
+        </li>
+        <li>
+            <a class="ext-nav-link" href="https://turinglang.org/team/">Team</a>
+        </li>
+    </ul>
+    <a href="https://x.com/TuringLang" style="margin-left: 15px; padding-top: 2px">
+        <svg fill="#ffffff" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="32px" height="32px" viewBox="-209.92 -209.92 931.84 931.84" xml:space="preserve" stroke="#ffffff">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+                <g id="7935ec95c421cee6d86eb22ecd12f847">
+                    <path style="display: inline"
+                        d="M459.186,151.787c0.203,4.501,0.305,9.023,0.305,13.565 c0,138.542-105.461,298.285-298.274,298.285c-59.209,0-114.322-17.357-160.716-47.104c8.212,0.973,16.546,1.47,25.012,1.47 c49.121,0,94.318-16.759,130.209-44.884c-45.887-0.841-84.596-31.154-97.938-72.804c6.408,1.227,12.968,1.886,19.73,1.886 c9.55,0,18.816-1.287,27.617-3.68c-47.955-9.633-84.1-52.001-84.1-102.795c0-0.446,0-0.882,0.011-1.318 c14.133,7.847,30.294,12.562,47.488,13.109c-28.134-18.796-46.637-50.885-46.637-87.262c0-19.212,5.16-37.218,14.193-52.7 c51.707,63.426,128.941,105.156,216.072,109.536c-1.784-7.675-2.718-15.674-2.718-23.896c0-57.891,46.941-104.832,104.832-104.832 c30.173,0,57.404,12.734,76.525,33.102c23.887-4.694,46.313-13.423,66.569-25.438c-7.827,24.485-24.434,45.025-46.089,58.002 c21.209-2.535,41.426-8.171,60.222-16.505C497.448,118.542,479.666,137.004,459.186,151.787z">
+                    </path>
+                </g>
+            </g>
+        </svg>
+    </a>
+    <a href="https://github.com/TuringLang/Turing.jl">
+        <svg width="32px" height="32px" viewBox="-8.2 -8.2 36.40 36.40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+                <title>github [#142]</title>
+                <desc>Created with Sketch.</desc>
+                <defs></defs>
+                <g id="Page-1" stroke-width="0.0002" fill="none" fill-rule="evenodd">
+                    <g id="Dribbble-Light-Preview" transform="translate(-140.000000, -7559.000000)" fill="#ffffff">
+                        <g id="icons" transform="translate(56.000000, 160.000000)">
+                            <path
+                                d="M94,7399 C99.523,7399 104,7403.59 104,7409.253 C104,7413.782 101.138,7417.624 97.167,7418.981 C96.66,7419.082 96.48,7418.762 96.48,7418.489 C96.48,7418.151 96.492,7417.047 96.492,7415.675 C96.492,7414.719 96.172,7414.095 95.813,7413.777 C98.04,7413.523 100.38,7412.656 100.38,7408.718 C100.38,7407.598 99.992,7406.684 99.35,7405.966 C99.454,7405.707 99.797,7404.664 99.252,7403.252 C99.252,7403.252 98.414,7402.977 96.505,7404.303 C95.706,7404.076 94.85,7403.962 94,7403.958 C93.15,7403.962 92.295,7404.076 91.497,7404.303 C89.586,7402.977 88.746,7403.252 88.746,7403.252 C88.203,7404.664 88.546,7405.707 88.649,7405.966 C88.01,7406.684 87.619,7407.598 87.619,7408.718 C87.619,7412.646 89.954,7413.526 92.175,7413.785 C91.889,7414.041 91.63,7414.493 91.54,7415.156 C90.97,7415.418 89.522,7415.871 88.63,7414.304 C88.63,7414.304 88.101,7413.319 87.097,7413.247 C87.097,7413.247 86.122,7413.234 87.029,7413.87 C87.029,7413.87 87.684,7414.185 88.139,7415.37 C88.139,7415.37 88.726,7417.2 91.508,7416.58 C91.513,7417.437 91.522,7418.245 91.522,7418.489 C91.522,7418.76 91.338,7419.077 90.839,7418.982 C86.865,7417.627 84,7413.783 84,7409.253 C84,7403.59 88.478,7399 94,7399"
+                                id="github-[#142]">
+                            </path>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </svg>
+    </a>
+    <span class="ext-menu-toggle">&#9776;</span>
+</nav>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const menuToggle = document.querySelector(".ext-menu-toggle");
+        const navLinks = document.querySelector(".ext-nav-links");
+        const nav = document.querySelector(".ext-navigation");
+        const navigationHandler = document.getElementById("library-handler");
+        const navigationItemsContainer =
+            document.getElementById("ext-dropdown-items");
+        let lastScrollY = window.scrollY;
+
+        function setAppropriateHeight() {
+            if (window.innerWidth <= 768) {
+                const viewportHeight = window.innerHeight;
+                const navHeight = nav.offsetHeight;
+                navLinks.style.maxHeight = `${viewportHeight - navHeight}px`;
+                navLinks.style.overflowY = "auto";
+            } else {
+                navLinks.style.maxHeight = "";
+                navLinks.style.overflowY = "";
+            }
+        }
+
+        // Toggle main menu for mobile
+        menuToggle.addEventListener("click", () => {
+            navLinks.classList.toggle("show");
+            if (navLinks.classList.contains("show")) {
+                setAppropriateHeight();
+                // Ensure the dropdown is hidden when menu is first opened
+                navigationItemsContainer.style.display = "none";
+                navigationItemsContainer.classList.remove("show");
+            }
+        });
+
+        // Close menus if clicked outside
+        document.addEventListener("click", (event) => {
+            if (
+                !navLinks.contains(event.target) &&
+                !menuToggle.contains(event.target)
+            ) {
+                navLinks.classList.remove("show");
+                navigationItemsContainer.classList.remove("show");
+                navigationHandler.classList.remove("open");
+            }
+        });
+
+        // Hide navigation bar on scroll down in mobile view
+        window.addEventListener("scroll", () => {
+            if (window.innerWidth <= 768) {
+                nav.classList.toggle("hide", window.scrollY > lastScrollY);
+                lastScrollY = window.scrollY;
+            }
+        });
+
+        // Library API script
+        navigationHandler.addEventListener("click", (event) => {
+            event.preventDefault(); // Prevent default action of the link
+            if (navigationItemsContainer.classList.contains("show")) {
+                navigationItemsContainer.classList.remove("show");
+                navigationHandler.classList.remove("open");
+                setTimeout(() => {
+                    navigationItemsContainer.style.display = "none";
+                }, 500); // Match the timeout to the CSS transition duration
+            } else {
+                navigationItemsContainer.style.display = "grid";
+                navigationHandler.classList.add("open");
+                setTimeout(() => {
+                    navigationItemsContainer.classList.add("show");
+                }, 10); // Delay to ensure the display change takes effect before adding class
+            }
+            setAppropriateHeight(); // Recalculate height when dropdown changes
+        });
+
+        // Handle window resize
+        window.addEventListener("resize", setAppropriateHeight);
+
+        // Initial setup
+        setAppropriateHeight();
+    });
+</script>
+<!-- NAVBAR END -->
+<div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">AdvancedPS</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../api/">API</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../example/">Examples</a></li><li><a class="tocitem" href="../gaussian-process/">Gaussian Process State-Space Model (GP-SSM)</a></li><li><a class="tocitem" href="../gaussian-ssm/">Particle Gibbs for Gaussian state-space model</a></li><li class="is-active"><a class="tocitem" href>Levy-SSM latent state inference</a></li><li><a class="tocitem" href="../particle-gibbs/">Particle Gibbs for non-linear models</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Levy-SSM latent state inference</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Levy-SSM latent state inference</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/TuringLang/AdvancedPS.jl/blob/master/examples/levy-ssm/script.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Levy-SSM-latent-state-inference"><a class="docs-heading-anchor" href="#Levy-SSM-latent-state-inference">Levy-SSM latent state inference</a><a id="Levy-SSM-latent-state-inference-1"></a><a class="docs-heading-anchor-permalink" href="#Levy-SSM-latent-state-inference" title="Permalink"></a></h1><pre><code class="language-julia hljs">using AdvancedPS: SSMProblems
 using AdvancedPS
 using Random
 using Plots
@@ -2863,3 +3318,4 @@ plot(ps...; layout=(2, 1), size=(600, 600))</code></pre><?xml version="1.0" enco
 <path clip-path="url(#clip310)" d="M1734.57 2109.96 L1741.53 2109.96 L1750.35 2133.48 L1759.22 2109.96 L1766.19 2109.96 L1766.19 2144.52 L1761.63 2144.52 L1761.63 2114.17 L1752.72 2137.88 L1748.02 2137.88 L1739.1 2114.17 L1739.1 2144.52 L1734.57 2144.52 L1734.57 2109.96 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1797.46 2130.49 L1797.46 2132.57 L1777.88 2132.57 Q1778.16 2136.97 1780.52 2139.29 Q1782.9 2141.58 1787.14 2141.58 Q1789.59 2141.58 1791.88 2140.98 Q1794.2 2140.38 1796.47 2139.17 L1796.47 2143.2 Q1794.17 2144.17 1791.77 2144.68 Q1789.36 2145.19 1786.88 2145.19 Q1780.68 2145.19 1777.04 2141.58 Q1773.43 2137.97 1773.43 2131.81 Q1773.43 2125.45 1776.86 2121.72 Q1780.31 2117.97 1786.14 2117.97 Q1791.37 2117.97 1794.4 2121.35 Q1797.46 2124.7 1797.46 2130.49 M1793.2 2129.24 Q1793.15 2125.75 1791.23 2123.66 Q1789.34 2121.58 1786.19 2121.58 Q1782.62 2121.58 1780.47 2123.59 Q1778.34 2125.61 1778.02 2129.26 L1793.2 2129.24 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1816.23 2131.49 Q1811.07 2131.49 1809.08 2132.67 Q1807.09 2133.85 1807.09 2136.7 Q1807.09 2138.96 1808.57 2140.31 Q1810.08 2141.63 1812.65 2141.63 Q1816.19 2141.63 1818.32 2139.13 Q1820.47 2136.6 1820.47 2132.44 L1820.47 2131.49 L1816.23 2131.49 M1824.73 2129.73 L1824.73 2144.52 L1820.47 2144.52 L1820.47 2140.58 Q1819.01 2142.95 1816.84 2144.08 Q1814.66 2145.19 1811.51 2145.19 Q1807.53 2145.19 1805.17 2142.97 Q1802.83 2140.72 1802.83 2136.97 Q1802.83 2132.6 1805.75 2130.38 Q1808.69 2128.15 1814.5 2128.15 L1820.47 2128.15 L1820.47 2127.74 Q1820.47 2124.8 1818.53 2123.2 Q1816.6 2121.58 1813.11 2121.58 Q1810.89 2121.58 1808.78 2122.11 Q1806.67 2122.64 1804.73 2123.71 L1804.73 2119.77 Q1807.07 2118.87 1809.27 2118.43 Q1811.47 2117.97 1813.55 2117.97 Q1819.17 2117.97 1821.95 2120.89 Q1824.73 2123.8 1824.73 2129.73 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1855.05 2128.87 L1855.05 2144.52 L1850.79 2144.52 L1850.79 2129.01 Q1850.79 2125.33 1849.36 2123.5 Q1847.92 2121.67 1845.05 2121.67 Q1841.6 2121.67 1839.61 2123.87 Q1837.62 2126.07 1837.62 2129.87 L1837.62 2144.52 L1833.34 2144.52 L1833.34 2118.59 L1837.62 2118.59 L1837.62 2122.62 Q1839.15 2120.28 1841.21 2119.13 Q1843.29 2117.97 1846 2117.97 Q1850.47 2117.97 1852.76 2120.75 Q1855.05 2123.5 1855.05 2128.87 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1874.01 2109.96 L1903.25 2109.96 L1903.25 2113.89 L1890.98 2113.89 L1890.98 2144.52 L1886.28 2144.52 L1886.28 2113.89 L1874.01 2113.89 L1874.01 2109.96 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1915.63 2122.58 Q1914.91 2122.16 1914.06 2121.97 Q1913.22 2121.76 1912.21 2121.76 Q1908.59 2121.76 1906.65 2124.13 Q1904.73 2126.46 1904.73 2130.86 L1904.73 2144.52 L1900.45 2144.52 L1900.45 2118.59 L1904.73 2118.59 L1904.73 2122.62 Q1906.07 2120.26 1908.22 2119.13 Q1910.38 2117.97 1913.46 2117.97 Q1913.9 2117.97 1914.43 2118.04 Q1914.96 2118.08 1915.61 2118.2 L1915.63 2122.58 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1931.88 2131.49 Q1926.72 2131.49 1924.73 2132.67 Q1922.74 2133.85 1922.74 2136.7 Q1922.74 2138.96 1924.22 2140.31 Q1925.72 2141.63 1928.29 2141.63 Q1931.83 2141.63 1933.96 2139.13 Q1936.12 2136.6 1936.12 2132.44 L1936.12 2131.49 L1931.88 2131.49 M1940.38 2129.73 L1940.38 2144.52 L1936.12 2144.52 L1936.12 2140.58 Q1934.66 2142.95 1932.48 2144.08 Q1930.31 2145.19 1927.16 2145.19 Q1923.18 2145.19 1920.82 2142.97 Q1918.48 2140.72 1918.48 2136.97 Q1918.48 2132.6 1921.4 2130.38 Q1924.33 2128.15 1930.14 2128.15 L1936.12 2128.15 L1936.12 2127.74 Q1936.12 2124.8 1934.17 2123.2 Q1932.25 2121.58 1928.76 2121.58 Q1926.53 2121.58 1924.43 2122.11 Q1922.32 2122.64 1920.38 2123.71 L1920.38 2119.77 Q1922.71 2118.87 1924.91 2118.43 Q1927.11 2117.97 1929.2 2117.97 Q1934.82 2117.97 1937.6 2120.89 Q1940.38 2123.8 1940.38 2129.73 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1949.15 2118.59 L1953.41 2118.59 L1953.41 2144.98 Q1953.41 2149.94 1951.51 2152.16 Q1949.64 2154.38 1945.45 2154.38 L1943.83 2154.38 L1943.83 2150.77 L1944.96 2150.77 Q1947.39 2150.77 1948.27 2149.64 Q1949.15 2148.52 1949.15 2144.98 L1949.15 2118.59 M1949.15 2108.5 L1953.41 2108.5 L1953.41 2113.89 L1949.15 2113.89 L1949.15 2108.5 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1984.5 2130.49 L1984.5 2132.57 L1964.91 2132.57 Q1965.19 2136.97 1967.55 2139.29 Q1969.94 2141.58 1974.17 2141.58 Q1976.63 2141.58 1978.92 2140.98 Q1981.23 2140.38 1983.5 2139.17 L1983.5 2143.2 Q1981.21 2144.17 1978.8 2144.68 Q1976.39 2145.19 1973.92 2145.19 Q1967.71 2145.19 1964.08 2141.58 Q1960.47 2137.97 1960.47 2131.81 Q1960.47 2125.45 1963.89 2121.72 Q1967.34 2117.97 1973.18 2117.97 Q1978.41 2117.97 1981.44 2121.35 Q1984.5 2124.7 1984.5 2130.49 M1980.24 2129.24 Q1980.19 2125.75 1978.27 2123.66 Q1976.37 2121.58 1973.22 2121.58 Q1969.66 2121.58 1967.51 2123.59 Q1965.38 2125.61 1965.05 2129.26 L1980.24 2129.24 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M2010.14 2119.59 L2010.14 2123.57 Q2008.34 2122.58 2006.51 2122.09 Q2004.7 2121.58 2002.85 2121.58 Q1998.71 2121.58 1996.42 2124.22 Q1994.13 2126.83 1994.13 2131.58 Q1994.13 2136.32 1996.42 2138.96 Q1998.71 2141.58 2002.85 2141.58 Q2004.7 2141.58 2006.51 2141.09 Q2008.34 2140.58 2010.14 2139.59 L2010.14 2143.52 Q2008.36 2144.36 2006.44 2144.77 Q2004.54 2145.19 2002.39 2145.19 Q1996.53 2145.19 1993.08 2141.51 Q1989.64 2137.83 1989.64 2131.58 Q1989.64 2125.24 1993.11 2121.6 Q1996.6 2117.97 2002.67 2117.97 Q2004.64 2117.97 2006.51 2118.39 Q2008.39 2118.78 2010.14 2119.59 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M2021.76 2111.23 L2021.76 2118.59 L2030.54 2118.59 L2030.54 2121.9 L2021.76 2121.9 L2021.76 2135.98 Q2021.76 2139.15 2022.62 2140.05 Q2023.5 2140.95 2026.16 2140.95 L2030.54 2140.95 L2030.54 2144.52 L2026.16 2144.52 Q2021.23 2144.52 2019.36 2142.69 Q2017.48 2140.84 2017.48 2135.98 L2017.48 2121.9 L2014.36 2121.9 L2014.36 2118.59 L2017.48 2118.59 L2017.48 2111.23 L2021.76 2111.23 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M2046.19 2121.58 Q2042.76 2121.58 2040.77 2124.26 Q2038.78 2126.93 2038.78 2131.58 Q2038.78 2136.23 2040.75 2138.92 Q2042.74 2141.58 2046.19 2141.58 Q2049.59 2141.58 2051.58 2138.89 Q2053.57 2136.21 2053.57 2131.58 Q2053.57 2126.97 2051.58 2124.29 Q2049.59 2121.58 2046.19 2121.58 M2046.19 2117.97 Q2051.74 2117.97 2054.91 2121.58 Q2058.08 2125.19 2058.08 2131.58 Q2058.08 2137.95 2054.91 2141.58 Q2051.74 2145.19 2046.19 2145.19 Q2040.61 2145.19 2037.44 2141.58 Q2034.29 2137.95 2034.29 2131.58 Q2034.29 2125.19 2037.44 2121.58 Q2040.61 2117.97 2046.19 2117.97 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M2080.17 2122.58 Q2079.45 2122.16 2078.59 2121.97 Q2077.76 2121.76 2076.74 2121.76 Q2073.13 2121.76 2071.19 2124.13 Q2069.26 2126.46 2069.26 2130.86 L2069.26 2144.52 L2064.98 2144.52 L2064.98 2118.59 L2069.26 2118.59 L2069.26 2122.62 Q2070.61 2120.26 2072.76 2119.13 Q2074.91 2117.97 2077.99 2117.97 Q2078.43 2117.97 2078.96 2118.04 Q2079.5 2118.08 2080.14 2118.2 L2080.17 2122.58 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M2095.42 2146.93 Q2093.62 2151.56 2091.9 2152.97 Q2090.19 2154.38 2087.32 2154.38 L2083.92 2154.38 L2083.92 2150.82 L2086.42 2150.82 Q2088.18 2150.82 2089.15 2149.98 Q2090.12 2149.15 2091.3 2146.05 L2092.07 2144.1 L2081.58 2118.59 L2086.09 2118.59 L2094.2 2138.87 L2102.3 2118.59 L2106.81 2118.59 L2095.42 2146.93 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M2137.99 2108.55 Q2134.89 2113.87 2133.38 2119.08 Q2131.88 2124.29 2131.88 2129.64 Q2131.88 2134.98 2133.38 2140.24 Q2134.91 2145.47 2137.99 2150.77 L2134.29 2150.77 Q2130.82 2145.33 2129.08 2140.07 Q2127.37 2134.82 2127.37 2129.64 Q2127.37 2124.47 2129.08 2119.24 Q2130.79 2114.01 2134.29 2108.55 L2137.99 2108.55 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M2163.59 2114.8 L2163.59 2123.76 L2176.49 2123.76 L2176.49 2127.69 L2163.59 2127.69 L2163.59 2136.65 L2159.7 2136.65 L2159.7 2127.69 L2146.81 2127.69 L2146.81 2123.76 L2159.7 2123.76 L2159.7 2114.8 L2163.59 2114.8 M2146.81 2140.58 L2176.49 2140.58 L2176.49 2144.52 L2146.81 2144.52 L2146.81 2140.58 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M2190.61 2140.58 L2206.93 2140.58 L2206.93 2144.52 L2184.98 2144.52 L2184.98 2140.58 Q2187.64 2137.83 2192.23 2133.2 Q2196.83 2128.55 2198.01 2127.2 Q2200.26 2124.68 2201.14 2122.95 Q2202.04 2121.19 2202.04 2119.5 Q2202.04 2116.74 2200.1 2115.01 Q2198.18 2113.27 2195.07 2113.27 Q2192.88 2113.27 2190.42 2114.03 Q2187.99 2114.8 2185.21 2116.35 L2185.21 2111.63 Q2188.04 2110.49 2190.49 2109.91 Q2192.94 2109.33 2194.98 2109.33 Q2200.35 2109.33 2203.55 2112.02 Q2206.74 2114.7 2206.74 2119.2 Q2206.74 2121.33 2205.93 2123.25 Q2205.14 2125.14 2203.04 2127.74 Q2202.46 2128.41 2199.36 2131.63 Q2196.25 2134.82 2190.61 2140.58 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M2226.19 2121.97 Q2222.67 2121.97 2220.77 2124.52 Q2218.78 2127.18 2218.78 2131.58 Q2218.78 2136.23 2220.75 2138.92 Q2222.74 2141.58 2226.19 2141.58 Q2229.59 2141.58 2231.58 2138.89 Q2233.57 2136.21 2233.57 2131.58 Q2233.57 2127.34 2231.58 2124.52 Q2229.75 2121.97 2226.19 2121.97 M2226.19 2118.59 L2240.33 2118.59 L2240.33 2122.85 L2235.56 2122.85 Q2238.08 2126.46 2238.08 2131.58 Q2238.08 2137.95 2234.91 2141.56 Q2231.74 2145.19 2226.19 2145.19 Q2220.61 2145.19 2217.46 2141.56 Q2214.29 2137.95 2214.29 2131.58 Q2214.29 2125.17 2217.46 2121.58 Q2220.07 2118.59 2226.19 2118.59 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M2245.51 2108.55 L2249.22 2108.55 Q2252.69 2114.01 2254.4 2119.24 Q2256.14 2124.47 2256.14 2129.64 Q2256.14 2134.82 2254.4 2140.07 Q2252.69 2145.33 2249.22 2150.77 L2245.51 2150.77 Q2248.59 2145.47 2250.1 2140.24 Q2251.62 2134.98 2251.62 2129.64 Q2251.62 2124.29 2250.1 2119.08 Q2248.59 2113.87 2245.51 2108.55 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><polyline clip-path="url(#clip310)" style="stroke:#1e90ff; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; stroke-opacity:1; fill:none" points="1565.49,2179.08 1710.41,2179.08 "/>
 <path clip-path="url(#clip310)" d="M1734.57 2161.8 L1763.8 2161.8 L1763.8 2165.73 L1751.53 2165.73 L1751.53 2196.36 L1746.84 2196.36 L1746.84 2165.73 L1734.57 2165.73 L1734.57 2161.8 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1776.19 2174.42 Q1775.47 2174 1774.61 2173.81 Q1773.78 2173.6 1772.76 2173.6 Q1769.15 2173.6 1767.21 2175.97 Q1765.28 2178.3 1765.28 2182.7 L1765.28 2196.36 L1761 2196.36 L1761 2170.43 L1765.28 2170.43 L1765.28 2174.46 Q1766.63 2172.1 1768.78 2170.97 Q1770.93 2169.81 1774.01 2169.81 Q1774.45 2169.81 1774.98 2169.88 Q1775.52 2169.92 1776.16 2170.04 L1776.19 2174.42 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1780.22 2186.13 L1780.22 2170.43 L1784.47 2170.43 L1784.47 2185.97 Q1784.47 2189.65 1785.91 2191.5 Q1787.34 2193.33 1790.22 2193.33 Q1793.66 2193.33 1795.65 2191.13 Q1797.67 2188.93 1797.67 2185.13 L1797.67 2170.43 L1801.93 2170.43 L1801.93 2196.36 L1797.67 2196.36 L1797.67 2192.38 Q1796.12 2194.74 1794.06 2195.9 Q1792.02 2197.03 1789.31 2197.03 Q1784.84 2197.03 1782.53 2194.25 Q1780.22 2191.48 1780.22 2186.13 M1790.93 2169.81 L1790.93 2169.81 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1832.88 2182.33 L1832.88 2184.41 L1813.29 2184.41 Q1813.57 2188.81 1815.93 2191.13 Q1818.32 2193.42 1822.55 2193.42 Q1825.01 2193.42 1827.3 2192.82 Q1829.61 2192.22 1831.88 2191.01 L1831.88 2195.04 Q1829.59 2196.01 1827.18 2196.52 Q1824.78 2197.03 1822.3 2197.03 Q1816.09 2197.03 1812.46 2193.42 Q1808.85 2189.81 1808.85 2183.65 Q1808.85 2177.29 1812.28 2173.56 Q1815.72 2169.81 1821.56 2169.81 Q1826.79 2169.81 1829.82 2173.19 Q1832.88 2176.54 1832.88 2182.33 M1828.62 2181.08 Q1828.57 2177.59 1826.65 2175.5 Q1824.75 2173.42 1821.6 2173.42 Q1818.04 2173.42 1815.89 2175.43 Q1813.76 2177.45 1813.43 2181.1 L1828.62 2181.08 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1850.33 2161.8 L1879.57 2161.8 L1879.57 2165.73 L1867.3 2165.73 L1867.3 2196.36 L1862.6 2196.36 L1862.6 2165.73 L1850.33 2165.73 L1850.33 2161.8 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1891.95 2174.42 Q1891.23 2174 1890.38 2173.81 Q1889.54 2173.6 1888.52 2173.6 Q1884.91 2173.6 1882.97 2175.97 Q1881.05 2178.3 1881.05 2182.7 L1881.05 2196.36 L1876.77 2196.36 L1876.77 2170.43 L1881.05 2170.43 L1881.05 2174.46 Q1882.39 2172.1 1884.54 2170.97 Q1886.7 2169.81 1889.77 2169.81 Q1890.21 2169.81 1890.75 2169.88 Q1891.28 2169.92 1891.93 2170.04 L1891.95 2174.42 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1908.2 2183.33 Q1903.04 2183.33 1901.05 2184.51 Q1899.06 2185.69 1899.06 2188.54 Q1899.06 2190.8 1900.54 2192.15 Q1902.04 2193.47 1904.61 2193.47 Q1908.15 2193.47 1910.28 2190.97 Q1912.44 2188.44 1912.44 2184.28 L1912.44 2183.33 L1908.2 2183.33 M1916.7 2181.57 L1916.7 2196.36 L1912.44 2196.36 L1912.44 2192.42 Q1910.98 2194.79 1908.8 2195.92 Q1906.63 2197.03 1903.48 2197.03 Q1899.5 2197.03 1897.14 2194.81 Q1894.8 2192.56 1894.8 2188.81 Q1894.8 2184.44 1897.71 2182.22 Q1900.65 2179.99 1906.46 2179.99 L1912.44 2179.99 L1912.44 2179.58 Q1912.44 2176.64 1910.49 2175.04 Q1908.57 2173.42 1905.08 2173.42 Q1902.85 2173.42 1900.75 2173.95 Q1898.64 2174.48 1896.7 2175.55 L1896.7 2171.61 Q1899.03 2170.71 1901.23 2170.27 Q1903.43 2169.81 1905.52 2169.81 Q1911.14 2169.81 1913.92 2172.73 Q1916.7 2175.64 1916.7 2181.57 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1925.47 2170.43 L1929.73 2170.43 L1929.73 2196.82 Q1929.73 2201.78 1927.83 2204 Q1925.96 2206.22 1921.77 2206.22 L1920.15 2206.22 L1920.15 2202.61 L1921.28 2202.61 Q1923.71 2202.61 1924.59 2201.48 Q1925.47 2200.36 1925.47 2196.82 L1925.47 2170.43 M1925.47 2160.34 L1929.73 2160.34 L1929.73 2165.73 L1925.47 2165.73 L1925.47 2160.34 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1960.82 2182.33 L1960.82 2184.41 L1941.23 2184.41 Q1941.51 2188.81 1943.87 2191.13 Q1946.26 2193.42 1950.49 2193.42 Q1952.95 2193.42 1955.24 2192.82 Q1957.55 2192.22 1959.82 2191.01 L1959.82 2195.04 Q1957.53 2196.01 1955.12 2196.52 Q1952.71 2197.03 1950.24 2197.03 Q1944.03 2197.03 1940.4 2193.42 Q1936.79 2189.81 1936.79 2183.65 Q1936.79 2177.29 1940.21 2173.56 Q1943.66 2169.81 1949.5 2169.81 Q1954.73 2169.81 1957.76 2173.19 Q1960.82 2176.54 1960.82 2182.33 M1956.56 2181.08 Q1956.51 2177.59 1954.59 2175.5 Q1952.69 2173.42 1949.54 2173.42 Q1945.98 2173.42 1943.83 2175.43 Q1941.7 2177.45 1941.37 2181.1 L1956.56 2181.08 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1986.46 2171.43 L1986.46 2175.41 Q1984.66 2174.42 1982.83 2173.93 Q1981.02 2173.42 1979.17 2173.42 Q1975.03 2173.42 1972.74 2176.06 Q1970.45 2178.67 1970.45 2183.42 Q1970.45 2188.16 1972.74 2190.8 Q1975.03 2193.42 1979.17 2193.42 Q1981.02 2193.42 1982.83 2192.93 Q1984.66 2192.42 1986.46 2191.43 L1986.46 2195.36 Q1984.68 2196.2 1982.76 2196.61 Q1980.86 2197.03 1978.71 2197.03 Q1972.85 2197.03 1969.4 2193.35 Q1965.95 2189.67 1965.95 2183.42 Q1965.95 2177.08 1969.43 2173.44 Q1972.92 2169.81 1978.99 2169.81 Q1980.95 2169.81 1982.83 2170.23 Q1984.7 2170.62 1986.46 2171.43 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M1998.08 2163.07 L1998.08 2170.43 L2006.86 2170.43 L2006.86 2173.74 L1998.08 2173.74 L1998.08 2187.82 Q1998.08 2190.99 1998.94 2191.89 Q1999.82 2192.79 2002.48 2192.79 L2006.86 2192.79 L2006.86 2196.36 L2002.48 2196.36 Q1997.55 2196.36 1995.68 2194.53 Q1993.8 2192.68 1993.8 2187.82 L1993.8 2173.74 L1990.68 2173.74 L1990.68 2170.43 L1993.8 2170.43 L1993.8 2163.07 L1998.08 2163.07 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M2022.51 2173.42 Q2019.08 2173.42 2017.09 2176.1 Q2015.1 2178.77 2015.1 2183.42 Q2015.1 2188.07 2017.07 2190.76 Q2019.06 2193.42 2022.51 2193.42 Q2025.91 2193.42 2027.9 2190.73 Q2029.89 2188.05 2029.89 2183.42 Q2029.89 2178.81 2027.9 2176.13 Q2025.91 2173.42 2022.51 2173.42 M2022.51 2169.81 Q2028.06 2169.81 2031.23 2173.42 Q2034.4 2177.03 2034.4 2183.42 Q2034.4 2189.79 2031.23 2193.42 Q2028.06 2197.03 2022.51 2197.03 Q2016.93 2197.03 2013.76 2193.42 Q2010.61 2189.79 2010.61 2183.42 Q2010.61 2177.03 2013.76 2173.42 Q2016.93 2169.81 2022.51 2169.81 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M2056.49 2174.42 Q2055.77 2174 2054.91 2173.81 Q2054.08 2173.6 2053.06 2173.6 Q2049.45 2173.6 2047.51 2175.97 Q2045.58 2178.3 2045.58 2182.7 L2045.58 2196.36 L2041.3 2196.36 L2041.3 2170.43 L2045.58 2170.43 L2045.58 2174.46 Q2046.93 2172.1 2049.08 2170.97 Q2051.23 2169.81 2054.31 2169.81 Q2054.75 2169.81 2055.28 2169.88 Q2055.82 2169.92 2056.46 2170.04 L2056.49 2174.42 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /><path clip-path="url(#clip310)" d="M2071.74 2198.77 Q2069.94 2203.4 2068.22 2204.81 Q2066.51 2206.22 2063.64 2206.22 L2060.24 2206.22 L2060.24 2202.66 L2062.74 2202.66 Q2064.5 2202.66 2065.47 2201.82 Q2066.44 2200.99 2067.62 2197.89 L2068.38 2195.94 L2057.9 2170.43 L2062.41 2170.43 L2070.51 2190.71 L2078.62 2170.43 L2083.13 2170.43 L2071.74 2198.77 Z" fill="#000000" fill-rule="nonzero" fill-opacity="1" /></svg>
 <hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../gaussian-ssm/">« Particle Gibbs for Gaussian state-space model</a><a class="docs-footer-nextpage" href="../particle-gibbs/">Particle Gibbs for non-linear models »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Sunday 14 July 2024 14:19">Sunday 14 July 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+
